@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4F46E5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Daily Tasks</title>
+<style>
+:root{--bg:#F8FAFC;--surface:#EAEFF5;--text:#0F172A;--muted:#64748B;--primary:#4F46E5;--on:#fff;--line:#E2E8F0;--done:#16A34A;--pending:#F59E0B;--sun:#DC2626;--card:#fff;--p1:#3B82F6;--p2:#F59E0B;--p3:#EF4444}
+:root[data-theme=dark]{--bg:#0F172A;--surface:#1E293B;--text:#E2E8F0;--muted:#94A3B8;--primary:#818CF8;--on:#0F172A;--line:#334155;--done:#4ADE80;--pending:#FBBF24;--sun:#F87171;--card:#1E293B}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]):not([data-theme=dark]){--bg:#0F172A;--surface:#1E293B;--text:#E2E8F0;--muted:#94A3B8;--primary:#818CF8;--on:#0F172A;--line:#334155;--done:#4ADE80;--pending:#FBBF24;--sun:#F87171;--card:#1E293B}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif}
+#app{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto;padding-top:env(safe-area-inset-top)}
+header{display:flex;align-items:center;padding:12px 4px 0 20px}
+header h1{flex:1;margin:0;font-size:24px}
+.btn{background:none;border:0;color:var(--primary);font-family:inherit;font-weight:600;font-size:15px;padding:10px 12px;border-radius:10px;cursor:pointer}
+.btn:active{background:var(--surface)}
+.nav{display:flex;align-items:center;padding:8px 8px 4px}
+.nav .title{flex:1;text-align:center;font-weight:700;font-size:18px;padding:10px 0;cursor:pointer}
+.nav .arrow{font-size:26px;padding:4px 14px}
+.week,.grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 8px}
+.week div{text-align:center;font-size:12px;font-weight:700;color:var(--muted);padding-bottom:2px}
+.cell{position:relative;height:52px;display:flex;align-items:flex-start;justify-content:center;cursor:pointer;user-select:none}
+.cell span{margin-top:6px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cell.sun span{color:var(--sun)}
+.cell.today span{border:1.5px solid var(--primary);font-weight:700}
+.cell.sel span{background:var(--primary);color:var(--on);font-weight:700;border-color:var(--primary)}
+.cell i{position:absolute;bottom:5px;width:6px;height:6px;border-radius:50%;background:var(--pending)}
+.cell i.all{background:var(--done)}
+hr{border:0;border-top:1px solid var(--line);margin:0;width:100%}
+.dayhead{padding:14px 20px 6px}
+.dayhead b{font-size:18px;display:block}
+.dayhead small{color:var(--muted);font-size:13px}
+#carry{display:none;margin:6px 16px 0;padding:10px 14px;border-radius:12px;background:var(--surface);color:var(--primary);font-weight:600;font-size:14px;cursor:pointer}
+#list{flex:1;overflow-y:auto;padding-bottom:96px}
+.row{display:flex;align-items:center;gap:6px;padding:8px 16px 8px 8px;border-left:4px solid transparent;margin-left:8px}
+.row.p1{border-left-color:var(--p1)}.row.p2{border-left-color:var(--p2)}.row.p3{border-left-color:var(--p3)}
+.row .txt{flex:1;min-width:0;cursor:pointer}
+.row .t{word-break:break-word}
+.row .n{font-size:13px;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+.row .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.row .meta b{color:var(--primary);font-weight:600}
+.row.done .t{text-decoration:line-through;color:var(--muted)}
+.chk{width:24px;height:24px;accent-color:var(--primary);margin:8px;flex:none}
+.mv{background:none;border:0;color:var(--muted);font-size:20px;padding:6px 10px;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:40px 20px;white-space:pre-line}
+.hdr{background:var(--surface);color:var(--primary);font-weight:700;font-size:14px;padding:10px 20px;cursor:pointer;position:sticky;top:0}
+#fab{position:fixed;right:max(20px,calc(50% - 260px));bottom:calc(24px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:var(--primary);color:var(--on);font-size:34px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.3);cursor:pointer}
+dialog{border:0;border-radius:18px;padding:20px;width:min(92vw,420px);max-height:90vh;overflow-y:auto;background:var(--card);color:var(--text)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog h2{margin:0 0 12px;font-size:20px}
+input[type=text],input[type=date],input[type=time],input[type=search],textarea,select{width:100%;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+textarea{min-height:70px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lbl{font-size:12px;font-weight:700;color:var(--muted);margin:2px 0 4px}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:9px 0;font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--primary);color:var(--on);border-color:var(--primary);font-weight:700}
+.seg button[data-p="1"].on{background:var(--p1);color:#fff}.seg button[data-p="2"].on{background:var(--p2);color:#111}.seg button[data-p="3"].on{background:var(--p3);color:#fff}
+.acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px}
+.acts .btn.danger{color:var(--sun);margin-right:auto}
+.acts .btn.main{background:var(--primary);color:var(--on)}
+#history{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;max-width:560px;margin:0 auto;padding-top:env(safe-area-inset-top);z-index:5}
+#history.open{display:flex}
+.chips{display:flex;gap:8px;padding:0 16px 8px}
+.chip{border:0;border-radius:20px;padding:8px 16px;font-family:inherit;font-weight:600;font-size:14px;background:var(--surface);color:var(--text);cursor:pointer}
+.chip.on{background:var(--primary);color:var(--on)}
+#hstats{padding:2px 20px 8px;color:var(--muted);font-size:13px}
+#hsearch{margin:0 16px 10px;width:calc(100% - 32px)}
+#banner{display:none;margin:8px 16px 0;padding:10px 14px;border-radius:12px;background:var(--surface);font-size:13px}
+#banner b{color:var(--primary);cursor:pointer}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;display:flex;gap:14px;align-items:center;max-width:90vw}
+#toast.show{opacity:1}
+#toast.act{pointer-events:auto}
+#toast button{background:none;border:0;color:#A5B4FC;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.menuitem{display:block;width:100%;text-align:left;padding:14px 4px}
+.hint{color:var(--muted);font-size:13px;margin:4px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.card{background:var(--surface);border-radius:14px;padding:12px 8px;text-align:center}
+.card b{display:block;font-size:22px;color:var(--primary)}
+.card small{color:var(--muted);font-size:12px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:90px;margin:6px 0 14px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:11px;color:var(--muted)}
+.bar div{width:100%;background:var(--surface);border-radius:6px;min-height:4px;position:relative;overflow:hidden}
+.bar div i{position:absolute;bottom:0;left:0;right:0;background:var(--done)}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;margin:6px 0 4px}
+.heat i{aspect-ratio:1;border-radius:3px;background:var(--surface);display:block}
+.heat i.l1{background:var(--done);opacity:.35}.heat i.l2{background:var(--done);opacity:.6}.heat i.l3{background:var(--done);opacity:.85}.heat i.l4{background:var(--done)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Daily Tasks</h1>
+    <button class="btn" id="btnStats" aria-label="Stats">Stats</button>
+    <button class="btn" id="btnHistory">History</button>
+    <button class="btn" id="btnMenu" aria-label="Menu" style="font-size:22px">&#8942;</button>
+  </header>
+  <div id="banner"></div>
+  <div class="nav">
+    <button class="btn arrow" id="prev" aria-label="Previous month">&#8249;</button>
+    <div class="title" id="monthTitle"></div>
+    <button class="btn arrow" id="next" aria-label="Next month">&#8250;</button>
+    <button class="btn" id="today">Today</button>
+  </div>
+  <div class="week"><div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div></div>
+  <div class="grid" id="grid"></div>
+  <hr>
+  <div class="dayhead"><b id="dayTitle"></b><small id="daySub"></small></div>
+  <div id="carry"></div>
+  <div id="list"></div>
+</div>
+<button id="fab" aria-label="Add task">+</button>
+
+<div id="history">
+  <header><button class="btn" id="hback" style="font-size:24px">&#8592;</button><h1>History</h1></header>
+  <div id="hstats"></div>
+  <input type="search" id="hsearch" placeholder="Search all tasks and notes">
+  <div class="chips">
+    <button class="chip on" data-f="0">All</button>
+    <button class="chip" data-f="1">Done</button>
+    <button class="chip" data-f="2">Pending</button>
+  </div>
+  <div id="hlist" style="flex:1;overflow-y:auto"></div>
+</div>
+
+<dialog id="taskDlg">
+  <h2 id="taskDlgTitle">New task</h2>
+  <input type="text" id="fTitle" placeholder="What do you need to do?" maxlength="500" autocomplete="off">
+  <textarea id="fNote" placeholder="Notes (optional)"></textarea>
+  <div class="two">
+    <div><div class="lbl">DATE</div><input type="date" id="fDate"></div>
+    <div><div class="lbl">TIME (optional)</div><input type="time" id="fTime"></div>
+  </div>
+  <div class="lbl">PRIORITY</div>
+  <div class="seg" id="fPrio">
+    <button type="button" data-p="0" class="on">None</button>
+    <button type="button" data-p="1">Low</button>
+    <button type="button" data-p="2">Medium</button>
+    <button type="button" data-p="3">High</button>
+  </div>
+  <div id="repeatWrap">
+    <div class="lbl">REPEAT</div>
+    <select id="fRepeat">
+      <option value="">Does not repeat</option>
+      <option value="daily">Every day</option>
+      <option value="weekdays">Every weekday (Mon-Fri)</option>
+      <option value="weekly">Every week</option>
+      <option value="monthly">Every month</option>
+    </select>
+  </div>
+  <div class="hint" id="seriesHint" style="display:none">Part of a repeating series. Edits change only this day.</div>
+  <div class="acts">
+    <button class="btn danger" id="fDelete" type="button">Delete</button>
+    <button class="btn" id="fCancel" type="button">Cancel</button>
+    <button class="btn" id="fAnother" type="button">Save &amp; add another</button>
+    <button class="btn main" id="fSave" type="button">Save</button>
+  </div>
+</dialog>
+
+<dialog id="delDlg">
+  <h2>Delete repeating task</h2>
+  <div class="hint" id="delName"></div>
+  <div class="acts" style="flex-direction:column;align-items:stretch">
+    <button class="btn" id="delOne" type="button">Only this day</button>
+    <button class="btn danger" id="delFuture" type="button" style="margin-right:0">This and all future days</button>
+    <button class="btn" id="delCancel" type="button">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="statsDlg">
+  <h2>Your progress</h2>
+  <div class="cards" id="statCards"></div>
+  <div class="lbl">LAST 7 DAYS (done / total)</div>
+  <div class="bars" id="statBars"></div>
+  <div class="lbl">LAST 12 WEEKS</div>
+  <div class="heat" id="statHeat"></div>
+  <div class="hint">Darker green means more tasks completed that day.</div>
+  <div class="acts"><button class="btn" id="statsClose">Close</button></div>
+</dialog>
+
+<dialog id="menuDlg">
+  <h2>Settings &amp; backup</h2>
+  <div class="lbl">THEME</div>
+  <div class="seg" id="themeSeg">
+    <button type="button" data-t="auto">Auto</button>
+    <button type="button" data-t="light">Light</button>
+    <button type="button" data-t="dark">Dark</button>
+  </div>
+  <div class="hint" id="storageInfo"></div>
+  <button class="btn menuitem" id="mExport">Save backup file (to Downloads)</button>
+  <button class="btn menuitem" id="mShare">Share backup (Drive, WhatsApp, email...)</button>
+  <button class="btn menuitem" id="mImport">Restore from backup file</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  <div class="acts"><button class="btn" id="mClose">Close</button></div>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const todayKey = () => key(new Date());
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return key(d); };
+const fmtLong = s => parse(s).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+const fmtShort = s => parse(s).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const daysFromToday = s => Math.round((parse(s) - parse(todayKey())) / 864e5);
+const fmtTime = t => { if (!t) return ''; const [h, m] = t.split(':').map(Number); return `${h % 12 || 12}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; };
+const PRIO = ['', 'Low', 'Medium', 'High'];
+const REPEAT = { daily: 'Daily', weekdays: 'Weekdays', weekly: 'Weekly', monthly: 'Monthly' };
+const HORIZON_DAYS = 90;
+
+function toast(msg, label, fn) {
+  const t = $('toast'); t.innerHTML = ''; t.append(msg);
+  t.classList.toggle('act', !!fn);
+  if (fn) { const b = document.createElement('button'); b.textContent = label; b.onclick = () => { t.classList.remove('show'); fn(); }; t.appendChild(b); }
+  t.classList.add('show');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), fn ? 6000 : 2500);
+}
+
+/* ---------- storage (IndexedDB) ---------- */
+let db;
+function openDb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('dailytasks', 2);
+    r.onupgradeneeded = () => {
+      const d = r.result;
+      if (!d.objectStoreNames.contains('tasks')) {
+        d.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true }).createIndex('date', 'date');
+      }
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'k' });
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+const req = r => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const store = (mode = 'readonly') => db.transaction('tasks', mode).objectStore('tasks');
+const addTask = t => req(store('readwrite').add(t));
+const putTask = t => req(store('readwrite').put(t));
+const delTask = id => req(store('readwrite').delete(id));
+const allTasks = () => req(store().getAll());
+const range = (a, b) => req(store().index('date').getAll(IDBKeyRange.bound(a, b)));
+const prioOf = t => t.priority || 0;
+function sortDay(a, b) {
+  if (a.done !== b.done) return a.done ? 1 : -1;
+  const ta = a.time || '99:99', tb = b.time || '99:99';
+  if (ta !== tb) return ta < tb ? -1 : 1;
+  if (prioOf(a) !== prioOf(b)) return prioOf(b) - prioOf(a);
+  return a.id - b.id;
+}
+const tasksOn = date => req(store().index('date').getAll(date)).then(a => a.sort(sortDay));
+const getMeta = async k => { const r = await req(db.transaction('meta').objectStore('meta').get(k)); return r ? r.v : undefined; };
+const setMeta = (k, v) => req(db.transaction('meta', 'readwrite').objectStore('meta').put({ k, v }));
+
+/* ---------- repeating tasks ---------- */
+function nextDate(s, rep, anchor) {
+  const d = parse(s);
+  if (rep === 'daily') d.setDate(d.getDate() + 1);
+  else if (rep === 'weekly') d.setDate(d.getDate() + 7);
+  else if (rep === 'weekdays') { do d.setDate(d.getDate() + 1); while (d.getDay() === 0 || d.getDay() === 6); }
+  else if (rep === 'monthly') {
+    const last = new Date(d.getFullYear(), d.getMonth() + 2, 0).getDate();
+    return key(new Date(d.getFullYear(), d.getMonth() + 1, Math.min(anchor || d.getDate(), last)));
+  }
+  return key(d);
+}
+async function extendSeries(template, fromDate, until) {
+  let cur = fromDate, n = 0;
+  while (n < 400) {
+    cur = nextDate(cur, template.repeat, template.anchor);
+    if (cur > until) break;
+    const c = { ...template, date: cur, done: false, completedAt: 0, createdAt: Date.now() };
+    delete c.id;
+    await addTask(c); n++;
+  }
+}
+async function topUpSeries() {
+  const ended = (await getMeta('endedSeries')) || [];
+  const latest = new Map();
+  for (const t of await allTasks()) {
+    if (!t.seriesId || ended.includes(t.seriesId)) continue;
+    const cur = latest.get(t.seriesId);
+    if (!cur || t.date > cur.date) latest.set(t.seriesId, t);
+  }
+  const until = addDays(todayKey(), HORIZON_DAYS);
+  for (const t of latest.values()) if (t.date < until) await extendSeries(t, t.date, until);
+}
+
+/* ---------- state ---------- */
+let shown = new Date(); shown.setDate(1);
+let selected = todayKey();
+let editing = null;
+let hFilter = 0;
+let formPrio = 0;
+
+/* ---------- calendar + day view ---------- */
+async function render() {
+  const y = shown.getFullYear(), m = shown.getMonth();
+  $('monthTitle').textContent = shown.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const first = key(new Date(y, m, 1)), last = key(new Date(y, m + 1, 0));
+  const stats = {};
+  for (const t of await range(first, last)) {
+    const s = stats[t.date] || (stats[t.date] = { n: 0, d: 0 });
+    s.n++; if (t.done) s.d++;
+  }
+  const off = new Date(y, m, 1).getDay(), len = new Date(y, m + 1, 0).getDate();
+  const grid = $('grid'); grid.innerHTML = '';
+  for (let i = 0; i < off; i++) grid.appendChild(document.createElement('div'));
+  const tk = todayKey();
+  for (let d = 1; d <= len; d++) {
+    const k = key(new Date(y, m, d));
+    const c = document.createElement('div');
+    c.className = 'cell' + (k === selected ? ' sel' : '') + (k === tk ? ' today' : '') + ((off + d - 1) % 7 === 0 ? ' sun' : '');
+    c.innerHTML = `<span>${d}</span>`;
+    const s = stats[k];
+    if (s) { const dot = document.createElement('i'); if (s.d === s.n) dot.className = 'all'; c.appendChild(dot); }
+    c.onclick = () => { selected = k; render(); };
+    grid.appendChild(c);
+  }
+  await renderDay();
+}
+
+async function renderDay() {
+  const list = await tasksOn(selected);
+  $('dayTitle').textContent = fmtLong(selected);
+  const diff = daysFromToday(selected);
+  const rel = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : diff === -1 ? 'Yesterday' : diff > 0 ? 'Upcoming' : 'Past';
+  const done = list.filter(t => t.done).length;
+  $('daySub').textContent = list.length ? `${rel} · ${done} of ${list.length} done` : `${rel} · no tasks yet`;
+  const el = $('list'); el.innerHTML = '';
+  if (!list.length) el.innerHTML = '<div class="empty">No tasks for this day.\nTap + to add one.</div>';
+  list.forEach(t => el.appendChild(rowEl(t, render, true)));
+  renderCarry();
+}
+
+async function overdue() {
+  const t0 = todayKey();
+  return (await range(addDays(t0, -90), addDays(t0, -1))).filter(t => !t.done);
+}
+async function renderCarry() {
+  const c = $('carry');
+  if (selected !== todayKey()) { c.style.display = 'none'; return; }
+  const od = await overdue();
+  if (!od.length) { c.style.display = 'none'; return; }
+  c.style.display = 'block';
+  c.textContent = `↪ Move ${od.length} overdue task${od.length > 1 ? 's' : ''} to today`;
+  c.onclick = async () => {
+    const old = od.map(t => [t.id, t.date]);
+    for (const t of od) { t.date = todayKey(); await putTask(t); }
+    await render();
+    toast(`Moved ${od.length} to today`, 'Undo', async () => {
+      for (const [id, date] of old) { const t = od.find(x => x.id === id); t.date = date; await putTask(t); }
+      render();
+    });
+  };
+}
+
+function rowEl(t, after, withMove) {
+  const r = document.createElement('div');
+  r.className = 'row' + (t.done ? ' done' : '') + (prioOf(t) ? ' p' + prioOf(t) : '');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox'; cb.className = 'chk'; cb.checked = t.done;
+  cb.onchange = async () => { t.done = cb.checked; t.completedAt = t.done ? Date.now() : 0; await putTask(t); after(); };
+  const txt = document.createElement('div'); txt.className = 'txt';
+  const a = document.createElement('div'); a.className = 't'; a.textContent = t.title;
+  txt.appendChild(a);
+  if (t.note) { const n = document.createElement('div'); n.className = 'n'; n.textContent = t.note; txt.appendChild(n); }
+  const bits = [];
+  if (t.time) bits.push(`<b>${fmtTime(t.time)}</b>`);
+  if (prioOf(t)) bits.push(PRIO[prioOf(t)] + ' priority');
+  if (t.repeat) bits.push('↻ ' + REPEAT[t.repeat]);
+  if (bits.length) { const m = document.createElement('div'); m.className = 'meta'; m.innerHTML = bits.join(' · '); txt.appendChild(m); }
+  txt.onclick = () => openTask(t);
+  r.append(cb, txt);
+  if (withMove && !t.done && t.date < todayKey()) {
+    const mv = document.createElement('button');
+    mv.className = 'mv'; mv.title = 'Move to today'; mv.textContent = '↪';
+    mv.onclick = async () => { t.date = todayKey(); await putTask(t); toast('Moved to today'); after(); };
+    r.appendChild(mv);
+  }
+  return r;
+}
+
+/* ---------- add / edit / delete ---------- */
+function setPrio(p) {
+  formPrio = p;
+  document.querySelectorAll('#fPrio button').forEach(b => b.classList.toggle('on', Number(b.dataset.p) === p));
+}
+document.querySelectorAll('#fPrio button').forEach(b => b.onclick = () => setPrio(Number(b.dataset.p)));
+
+function openTask(t) {
+  editing = t || null;
+  $('taskDlgTitle').textContent = t ? 'Edit task' : 'New task';
+  $('fTitle').value = t ? t.title : '';
+  $('fNote').value = t ? t.note : '';
+  $('fDate').value = t ? t.date : selected;
+  $('fTime').value = t ? (t.time || '') : '';
+  $('fRepeat').value = '';
+  setPrio(t ? prioOf(t) : 0);
+  $('repeatWrap').style.display = t ? 'none' : '';
+  $('seriesHint').style.display = t && t.seriesId ? '' : 'none';
+  $('fDelete').style.display = t ? '' : 'none';
+  $('fAnother').style.display = t ? 'none' : '';
+  $('taskDlg').showModal();
+  $('fTitle').focus();
+}
+async function saveTask() {
+  const title = $('fTitle').value.trim();
+  if (!title) { $('fTitle').focus(); toast('Enter a task'); return false; }
+  const date = $('fDate').value || selected;
+  const f = { title, note: $('fNote').value.trim(), date, time: $('fTime').value || '', priority: formPrio };
+  if (editing) { Object.assign(editing, f); await putTask(editing); }
+  else {
+    const rep = $('fRepeat').value;
+    const base = { ...f, done: false, createdAt: Date.now(), completedAt: 0 };
+    if (rep) {
+      base.repeat = rep; base.anchor = parse(date).getDate();
+      base.seriesId = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+    await addTask(base);
+    if (rep) await extendSeries(base, date, addDays(date > todayKey() ? date : todayKey(), HORIZON_DAYS));
+  }
+  selected = date; shown = parse(date); shown.setDate(1);
+  ensurePersistent();
+  await render();
+  return true;
+}
+$('fSave').onclick = async () => { if (await saveTask()) $('taskDlg').close(); };
+$('fAnother').onclick = async () => {
+  if (await saveTask()) { $('fTitle').value = ''; $('fNote').value = ''; $('fTime').value = ''; setPrio(0); $('fRepeat').value = ''; $('fTitle').focus(); toast('Added'); }
+};
+$('fTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('fSave').click(); } });
+$('fCancel').onclick = () => $('taskDlg').close();
+$('fDelete').onclick = () => {
+  const t = editing; $('taskDlg').close();
+  if (t.seriesId) { $('delName').textContent = t.title; $('delDlg').showModal(); }
+  else deleteOne(t);
+};
+async function deleteOne(t) {
+  await delTask(t.id); await render();
+  toast('Task deleted', 'Undo', async () => { await putTask(t); render(); });
+}
+$('delOne').onclick = () => { $('delDlg').close(); deleteOne(editing); };
+$('delFuture').onclick = async () => {
+  const t = editing; $('delDlg').close();
+  const gone = (await allTasks()).filter(x => x.seriesId === t.seriesId && x.date >= t.date);
+  for (const x of gone) await delTask(x.id);
+  const ended = (await getMeta('endedSeries')) || [];
+  if (!ended.includes(t.seriesId)) { ended.push(t.seriesId); await setMeta('endedSeries', ended); }
+  await render();
+  toast(`Deleted ${gone.length} tasks`, 'Undo', async () => {
+    for (const x of gone) await putTask(x);
+    await setMeta('endedSeries', ended.filter(s => s !== t.seriesId)); render();
+  });
+};
+$('delCancel').onclick = () => $('delDlg').close();
+$('fab').onclick = () => openTask(null);
+
+/* ---------- navigation ---------- */
+function shiftMonth(n) {
+  shown = new Date(shown.getFullYear(), shown.getMonth() + n, 1);
+  const p = parse(selected);
+  const maxD = new Date(shown.getFullYear(), shown.getMonth() + 1, 0).getDate();
+  selected = key(new Date(shown.getFullYear(), shown.getMonth(), Math.min(p.getDate(), maxD)));
+  render();
+}
+$('prev').onclick = () => shiftMonth(-1);
+$('next').onclick = () => shiftMonth(1);
+$('today').onclick = () => { selected = todayKey(); shown = parse(selected); shown.setDate(1); render(); };
+$('monthTitle').onclick = () => {
+  const i = document.createElement('input');
+  i.type = 'date'; i.value = selected; i.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+  document.body.appendChild(i);
+  i.onchange = () => { if (i.value) { selected = i.value; shown = parse(selected); shown.setDate(1); render(); } i.remove(); };
+  i.onblur = () => setTimeout(() => i.remove(), 300);
+  try { i.showPicker(); } catch (e) { i.focus(); i.click(); }
+};
+let sx = null, sy = null;
+$('grid').addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+$('grid').addEventListener('touchend', e => {
+  if (sx === null) return;
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftMonth(dx < 0 ? 1 : -1);
+  sx = null;
+}, { passive: true });
+
+/* ---------- history ---------- */
+async function loadHistory() {
+  const q = $('hsearch').value.trim().toLowerCase();
+  const all = await allTasks();
+  const t0 = todayKey();
+  const total = all.length, done = all.filter(t => t.done).length;
+  $('hstats').textContent = `${total} tasks recorded · ${done} completed`;
+  const found = all.filter(t =>
+    (hFilter === 0 || (hFilter === 1) === t.done) &&
+    (!q || t.title.toLowerCase().includes(q) || (t.note || '').toLowerCase().includes(q)));
+  found.sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : sortDay(a, b));
+  const groups = new Map();
+  found.forEach(t => { if (!groups.has(t.date)) groups.set(t.date, []); groups.get(t.date).push(t); });
+  const el = $('hlist'); el.innerHTML = '';
+  if (!found.length) { el.innerHTML = '<div class="empty">Nothing found.</div>'; return; }
+  const frag = document.createDocumentFragment();
+  for (const [date, items] of groups) {
+    const h = document.createElement('div'); h.className = 'hdr';
+    h.textContent = `${fmtShort(date)}${date === t0 ? '  ·  Today' : ''}   —   ${items.filter(t => t.done).length}/${items.length} done`;
+    h.onclick = () => gotoDate(date);
+    frag.appendChild(h);
+    items.forEach(t => frag.appendChild(rowEl(t, loadHistory, false)));
+  }
+  el.appendChild(frag);
+}
+function gotoDate(date) {
+  selected = date; shown = parse(date); shown.setDate(1);
+  $('history').classList.remove('open'); render();
+}
+$('btnHistory').onclick = () => { $('history').classList.add('open'); loadHistory(); };
+$('hback').onclick = () => { $('history').classList.remove('open'); render(); };
+$('hsearch').oninput = loadHistory;
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+  hFilter = Number(c.dataset.f);
+  document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+  loadHistory();
+});
+
+/* ---------- stats ---------- */
+async function showStats() {
+  const t0 = todayKey();
+  const all = (await allTasks()).filter(t => t.date <= t0); // future plans don't count as progress
+  const per = {};                       // date -> {n, d}
+  all.forEach(t => { const s = per[t.date] || (per[t.date] = { n: 0, d: 0 }); s.n++; if (t.done) s.d++; });
+  const doneDays = Object.keys(per).filter(k => per[k].d > 0).sort();
+  // current streak: consecutive days with >=1 completed task; today may still be in progress
+  let cur = 0, d = per[t0] && per[t0].d > 0 ? t0 : addDays(t0, -1);
+  while (per[d] && per[d].d > 0) { cur++; d = addDays(d, -1); }
+  let best = 0, run = 0, prev = null;
+  doneDays.forEach(k => { run = prev && addDays(prev, 1) === k ? run + 1 : 1; best = Math.max(best, run); prev = k; });
+  const totalDone = all.filter(t => t.done).length;
+  // completion this month, counting only days up to today
+  const ym = t0.slice(0, 7);
+  const mt = all.filter(t => t.date.startsWith(ym) && t.date <= t0);
+  const pct = mt.length ? Math.round(100 * mt.filter(t => t.done).length / mt.length) : 0;
+  $('statCards').innerHTML = [
+    [cur, 'day streak'], [best, 'best streak'], [pct + '%', 'done this month'],
+    [totalDone, 'total done'], [all.length, 'total tasks'], [doneDays.length, 'active days']
+  ].map(([v, l]) => `<div class="card"><b>${v}</b><small>${l}</small></div>`).join('');
+  const bars = [];
+  for (let i = 6; i >= 0; i--) {
+    const k = addDays(t0, -i), s = per[k] || { n: 0, d: 0 };
+    const h = s.n ? Math.max(6, Math.round(70 * s.n / Math.max(1, ...Array.from({ length: 7 }, (_, j) => (per[addDays(t0, -j)] || { n: 0 }).n)))) : 4;
+    const fill = s.n ? Math.round(100 * s.d / s.n) : 0;
+    bars.push(`<div class="bar"><span>${s.d}/${s.n}</span><div style="height:${h}px"><i style="height:${fill}%"></i></div><span>${parse(k).toLocaleDateString(undefined, { weekday: 'narrow' })}</span></div>`);
+  }
+  $('statBars').innerHTML = bars.join('');
+  // heatmap: 12 weeks ending this week, Sunday-first columns
+  const start = addDays(t0, -parse(t0).getDay() - 77);
+  const cells = [];
+  for (let i = 0; i < 84; i++) {
+    const k = addDays(start, i), s = per[k];
+    const lvl = k > t0 || !s ? 0 : s.d >= 5 ? 4 : s.d >= 3 ? 3 : s.d >= 2 ? 2 : s.d >= 1 ? 1 : 0;
+    cells.push(`<i class="${lvl ? 'l' + lvl : ''}" title="${k}: ${s ? s.d : 0} done"></i>`);
+  }
+  $('statHeat').innerHTML = cells.join('');
+  $('statsDlg').showModal();
+}
+$('btnStats').onclick = showStats;
+$('statsClose').onclick = () => $('statsDlg').close();
+
+/* ---------- theme ---------- */
+function applyTheme(t) {
+  const root = document.documentElement;
+  if (t === 'light' || t === 'dark') root.dataset.theme = t; else delete root.dataset.theme;
+  document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.t === (t || 'auto')));
+}
+document.querySelectorAll('#themeSeg button').forEach(b => b.onclick = () => {
+  try { localStorage.setItem('theme', b.dataset.t); } catch (e) {}
+  applyTheme(b.dataset.t);
+});
+try { applyTheme(localStorage.getItem('theme') || 'auto'); } catch (e) { applyTheme('auto'); }
+
+/* ---------- persistence + backup ---------- */
+async function ensurePersistent() {
+  if (!navigator.storage || !navigator.storage.persist) return false;
+  try { return (await navigator.storage.persisted()) || (await navigator.storage.persist()); } catch (e) { return false; }
+}
+async function storageInfo() {
+  let s = 'Storage status unavailable in this browser.';
+  if (navigator.storage && navigator.storage.estimate) {
+    const p = await ensurePersistent();
+    const e = await navigator.storage.estimate();
+    const mb = ((e.usage || 0) / 1048576).toFixed(2);
+    const gb = ((e.quota || 0) / 1073741824).toFixed(1);
+    s = (p ? 'Protected: the browser will not auto-delete your data. ' : 'Not protected yet: install the app to your home screen, then reopen it. ') +
+        `Using ${mb} MB of about ${gb} GB available.`;
+  }
+  $('storageInfo').textContent = s + ' Clearing site data or uninstalling still erases it, so keep a backup file.';
+}
+async function backupBlob() {
+  const tasks = await allTasks();
+  const endedSeries = (await getMeta('endedSeries')) || [];
+  const json = JSON.stringify({ app: 'daily-tasks', version: 2, exportedAt: new Date().toISOString(), tasks, endedSeries }, null, 2);
+  return new Blob([json], { type: 'application/json' });
+}
+const backupName = () => `daily-tasks-backup-${todayKey()}.json`;
+function markBackedUp() { try { localStorage.setItem('lastBackup', String(Date.now())); } catch (e) {} updateBanner(); }
+$('mExport').onclick = async () => {
+  const url = URL.createObjectURL(await backupBlob());
+  const a = document.createElement('a'); a.href = url; a.download = backupName();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  markBackedUp(); toast('Backup saved to Downloads');
+};
+$('mShare').onclick = async () => {
+  const file = new File([await backupBlob()], backupName(), { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Daily Tasks backup' }); markBackedUp(); } catch (e) { /* cancelled */ }
+  } else toast('Sharing not supported here; use Save backup file');
+};
+$('mImport').onclick = () => $('fileIn').click();
+$('fileIn').onchange = async () => {
+  const f = $('fileIn').files[0]; $('fileIn').value = '';
+  if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data.tasks)) throw new Error('not a Daily Tasks backup');
+    const existing = new Set((await allTasks()).map(t => `${t.date}|${t.title}|${t.note || ''}`));
+    let added = 0;
+    for (const t of data.tasks) {
+      if (!t.date || !t.title || !/^\d{4}-\d{2}-\d{2}$/.test(t.date)) continue;
+      const k = `${t.date}|${t.title}|${t.note || ''}`;
+      if (existing.has(k)) continue;
+      existing.add(k);
+      const rec = { date: t.date, title: String(t.title), note: String(t.note || ''), done: !!t.done,
+                    createdAt: t.createdAt || Date.now(), completedAt: t.completedAt || 0,
+                    time: t.time || '', priority: Number(t.priority) || 0 };
+      if (t.seriesId && REPEAT[t.repeat]) { rec.seriesId = String(t.seriesId); rec.repeat = t.repeat; rec.anchor = t.anchor; }
+      await addTask(rec); added++;
+    }
+    if (Array.isArray(data.endedSeries)) {
+      const cur = (await getMeta('endedSeries')) || [];
+      await setMeta('endedSeries', [...new Set([...cur, ...data.endedSeries])]);
+    }
+    toast(`Restored ${added} tasks`); $('menuDlg').close(); render();
+  } catch (e) { toast('Import failed: ' + e.message); }
+};
+$('btnMenu').onclick = () => { storageInfo(); $('menuDlg').showModal(); };
+$('mClose').onclick = () => $('menuDlg').close();
+
+async function updateBanner() {
+  const b = $('banner');
+  const n = (await allTasks()).length;
+  let last = 0; try { last = Number(localStorage.getItem('lastBackup')) || 0; } catch (e) {}
+  const stale = Date.now() - last > 14 * 864e5;
+  if (n >= 5 && stale) {
+    b.style.display = 'block';
+    b.innerHTML = last ? 'It has been a while since your last backup. <b id="bk">Back up now</b>'
+                       : 'No backup yet. Save a copy of your history. <b id="bk">Back up now</b>';
+    $('bk').onclick = () => { $('btnMenu').click(); };
+  } else b.style.display = 'none';
+}
+
+/* ---------- start ---------- */
+(async function init() {
+  db = await openDb();
+  await topUpSeries();
+  await render();
+  updateBanner();
+  ensurePersistent();
+  if (new URLSearchParams(location.search).get('add') === '1') openTask(null);
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
