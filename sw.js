@@ -1,7 +1,7 @@
 // Offline-first app shell, refreshed in the background (stale-while-revalidate).
 // User data lives in IndexedDB, never in this cache.
-const CACHE = 'dailytasks-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'dailytasks-v3';
+const SHELL = ['./', './index.html', './panchang.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

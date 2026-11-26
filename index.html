@@ -15,8 +15,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Roboto,sans-serif}
 #app{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto;padding-top:env(safe-area-inset-top)}
-header{display:flex;align-items:center;padding:12px 4px 0 20px}
-header h1{flex:1;margin:0;font-size:24px}
+header{display:flex;align-items:center;padding:12px 0 0 18px}
+header h1{flex:1;margin:0;font-size:21px;white-space:nowrap}
+header .btn{padding:10px 7px;font-size:14px}
 .btn{background:none;border:0;color:var(--primary);font-family:inherit;font-weight:600;font-size:15px;padding:10px 12px;border-radius:10px;cursor:pointer}
 .btn:active{background:var(--surface)}
 .nav{display:flex;align-items:center;padding:8px 8px 4px}
@@ -75,7 +76,7 @@ textarea{min-height:70px;resize:vertical}
 #banner b{color:var(--primary);cursor:pointer}
 #toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;display:flex;gap:14px;align-items:center;max-width:90vw}
 #toast.show{opacity:1}
-#toast.act{pointer-events:auto}
+#toast.act.show{pointer-events:auto}
 #toast button{background:none;border:0;color:#A5B4FC;font:inherit;font-weight:700;cursor:pointer;padding:0}
 .menuitem{display:block;width:100%;text-align:left;padding:14px 4px}
 .hint{color:var(--muted);font-size:13px;margin:4px 0 10px}
@@ -90,12 +91,44 @@ textarea{min-height:70px;resize:vertical}
 .heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;margin:6px 0 4px}
 .heat i{aspect-ratio:1;border-radius:3px;background:var(--surface);display:block}
 .heat i.l1{background:var(--done);opacity:.35}.heat i.l2{background:var(--done);opacity:.6}.heat i.l3{background:var(--done);opacity:.85}.heat i.l4{background:var(--done)}
+
+.grid.tith .cell{height:64px}
+.grid.tith .cell span{width:34px;height:34px;margin-top:3px;font-size:15px}
+.cell .tl{position:absolute;top:39px;left:0;right:0;text-align:center;font-size:10px;line-height:12px;color:var(--muted);white-space:nowrap}
+.cell.sel .tl{color:var(--primary);font-weight:700}
+.grid.tith .cell i{bottom:3px}
+.cell b.fd,.cell b.fv{position:absolute;top:3px;right:5px;border-radius:50%}
+.cell b.fd{width:7px;height:7px;background:var(--p2)}
+.cell b.fv{width:6px;height:6px;background:var(--primary);opacity:.6}
+#pstrip{display:none;margin:2px 16px 4px;padding:10px 12px;border-radius:12px;background:var(--surface);cursor:pointer;font-size:13px}
+#pstrip .more{float:right;color:var(--primary);font-weight:600}
+.chipx{display:inline-block;margin:6px 6px 0 0;padding:3px 10px;border-radius:12px;font-size:12px;background:var(--card);color:var(--primary);border:1px solid var(--line)}
+.chipx.big{background:var(--p2);color:#111;border-color:var(--p2);font-weight:700}
+#panchang{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;max-width:560px;margin:0 auto;padding-top:env(safe-area-inset-top);z-index:6}
+#panchang.open{display:flex}
+#pscroll{flex:1;overflow-y:auto;padding:0 20px 40px}
+.pcard{background:var(--surface);border-radius:16px;padding:14px 16px;margin:10px 0}
+.pcard h3{margin:0 0 2px;font-size:17px}
+.pcard .sub{color:var(--muted);font-size:13px;margin-bottom:6px}
+.drow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.drow:last-child{border-bottom:0}
+.drow span:first-child{color:var(--muted);flex:none}
+.drow span:last-child{text-align:right}
+.sec{font-size:12px;font-weight:700;color:var(--muted);margin:16px 0 4px}
+.evrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+.evrow .d{width:64px;flex:none;color:var(--muted);font-size:12px}
+.evrow .nm{flex:1}
+.evrow.big .nm{font-weight:700}
+.evrow.today .d{color:var(--primary);font-weight:700}
+.evrow .add{background:none;border:1px solid var(--line);color:var(--primary);border-radius:10px;padding:4px 10px;font-size:12px;cursor:pointer;flex:none}
+.note{color:var(--muted);font-size:12px;margin-top:14px}
 </style>
 </head>
 <body>
 <div id="app">
   <header>
     <h1>Daily Tasks</h1>
+    <button class="btn" id="btnPanchang">Panchang</button>
     <button class="btn" id="btnStats" aria-label="Stats">Stats</button>
     <button class="btn" id="btnHistory">History</button>
     <button class="btn" id="btnMenu" aria-label="Menu" style="font-size:22px">&#8942;</button>
@@ -111,6 +144,7 @@ textarea{min-height:70px;resize:vertical}
   <div class="grid" id="grid"></div>
   <hr>
   <div class="dayhead"><b id="dayTitle"></b><small id="daySub"></small></div>
+  <div id="pstrip"></div>
   <div id="carry"></div>
   <div id="list"></div>
 </div>
@@ -199,8 +233,39 @@ textarea{min-height:70px;resize:vertical}
   <div class="acts"><button class="btn" id="mClose">Close</button></div>
 </dialog>
 
+
+<div id="panchang">
+  <header><button class="btn" id="pback" style="font-size:24px">&#8592;</button><h1 id="ptitle">Panchang</h1><button class="btn" id="pcfgBtn" aria-label="Panchang settings">&#9881;</button></header>
+  <div class="nav">
+    <button class="btn arrow" id="pprev" aria-label="Previous month">&#8249;</button>
+    <div class="title" id="pmonthTitle"></div>
+    <button class="btn arrow" id="pnext" aria-label="Next month">&#8250;</button>
+    <button class="btn" id="ptoday">Today</button>
+  </div>
+  <div class="week" id="pweek"></div>
+  <div class="grid tith" id="pgrid"></div>
+  <hr>
+  <div id="pscroll"></div>
+</div>
+
+<dialog id="pcfgDlg">
+  <h2>Panchang settings</h2>
+  <div class="lbl">LANGUAGE</div>
+  <div class="seg" id="pLang"><button type="button" data-v="en">English</button><button type="button" data-v="hi">&#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</button></div>
+  <div class="lbl">MONTH SYSTEM</div>
+  <div class="seg" id="pSys"><button type="button" data-v="P">Purnimanta (North)</button><button type="button" data-v="A">Amanta (West/South)</button></div>
+  <div class="lbl">SHOW TITHI ON MAIN CALENDAR</div>
+  <div class="seg" id="pShow"><button type="button" data-v="1">On</button><button type="button" data-v="0">Off</button></div>
+  <div class="lbl">LOCATION (sunrise, sunset and tithi times)</div>
+  <select id="pCity"></select>
+  <button class="btn" id="pGeo" type="button" style="padding-left:0">Use my current location</button>
+  <div class="hint">Tithi is taken at local sunrise, so the city matters. Pick the one nearest to you.</div>
+  <div class="acts"><button class="btn main" id="pcfgClose" type="button">Done</button></div>
+</dialog>
+
 <div id="toast"></div>
 
+<script src="panchang.js"></script>
 <script>
 'use strict';
 /* ---------- helpers ---------- */
@@ -313,14 +378,14 @@ async function render() {
     s.n++; if (t.done) s.d++;
   }
   const off = new Date(y, m, 1).getDay(), len = new Date(y, m + 1, 0).getDate();
-  const grid = $('grid'); grid.innerHTML = '';
+  const grid = $('grid'); grid.innerHTML = ''; grid.classList.toggle('tith', pcfgOn());
   for (let i = 0; i < off; i++) grid.appendChild(document.createElement('div'));
   const tk = todayKey();
   for (let d = 1; d <= len; d++) {
     const k = key(new Date(y, m, d));
     const c = document.createElement('div');
     c.className = 'cell' + (k === selected ? ' sel' : '') + (k === tk ? ' today' : '') + ((off + d - 1) % 7 === 0 ? ' sun' : '');
-    c.innerHTML = `<span>${d}</span>`;
+    c.innerHTML = `<span>${d}</span>` + panchangCell(k);
     const s = stats[k];
     if (s) { const dot = document.createElement('i'); if (s.d === s.n) dot.className = 'all'; c.appendChild(dot); }
     c.onclick = () => { selected = k; render(); };
@@ -339,6 +404,7 @@ async function renderDay() {
   const el = $('list'); el.innerHTML = '';
   if (!list.length) el.innerHTML = '<div class="empty">No tasks for this day.\nTap + to add one.</div>';
   list.forEach(t => el.appendChild(rowEl(t, render, true)));
+  renderStrip();
   renderCarry();
 }
 
@@ -397,12 +463,12 @@ function setPrio(p) {
 }
 document.querySelectorAll('#fPrio button').forEach(b => b.onclick = () => setPrio(Number(b.dataset.p)));
 
-function openTask(t) {
+function openTask(t, pre) {
   editing = t || null;
   $('taskDlgTitle').textContent = t ? 'Edit task' : 'New task';
-  $('fTitle').value = t ? t.title : '';
+  $('fTitle').value = t ? t.title : (pre ? pre.title : '');
   $('fNote').value = t ? t.note : '';
-  $('fDate').value = t ? t.date : selected;
+  $('fDate').value = t ? t.date : (pre ? pre.date : selected);
   $('fTime').value = t ? (t.time || '') : '';
   $('fRepeat').value = '';
   setPrio(t ? prioOf(t) : 0);
@@ -573,6 +639,185 @@ async function showStats() {
 }
 $('btnStats').onclick = showStats;
 $('statsClose').onclick = () => $('statsDlg').close();
+
+
+/* ---------- panchang (tithi, festivals) ---------- */
+const PC = window.Panchang;
+const CITIES = [
+  ['Mumbai', 19.076, 72.8777], ['Navi Mumbai', 19.033, 73.0297], ['Pune', 18.5204, 73.8567], ['Delhi', 28.6139, 77.209],
+  ['Kolkata', 22.5726, 88.3639], ['Chennai', 13.0827, 80.2707], ['Bengaluru', 12.9716, 77.5946], ['Hyderabad', 17.385, 78.4867],
+  ['Ahmedabad', 23.0225, 72.5714], ['Jaipur', 26.9124, 75.7873], ['Lucknow', 26.8467, 80.9462], ['Varanasi', 25.3176, 82.9739],
+  ['Patna', 25.5941, 85.1376], ['Bhopal', 23.2599, 77.4126], ['Chandigarh', 30.7333, 76.7794], ['Guwahati', 26.1445, 91.7362],
+  ['Thiruvananthapuram', 8.5241, 76.9366], ['Nagpur', 21.1458, 79.0882], ['Ranchi', 23.3441, 85.3096], ['Kathmandu', 27.7172, 85.324, 5.75]
+];
+const PCFG_DEFAULT = { lang: 'en', sys: 'P', tithiOnCal: true, loc: { name: 'Mumbai', lat: 19.076, lon: 72.8777, tz: 5.5 } };
+let pcfg = { ...PCFG_DEFAULT };
+try { pcfg = { ...PCFG_DEFAULT, ...JSON.parse(localStorage.getItem('pcfg') || '{}') }; } catch (e) {}
+const savePcfg = () => { try { localStorage.setItem('pcfg', JSON.stringify(pcfg)); } catch (e) {} };
+const hiOn = () => pcfg.lang === 'hi';
+const pcfgOn = () => !!PC && pcfg.tithiOnCal;
+const safe = (fn, fb) => { try { return fn(); } catch (e) { console.error(e); return fb; } };
+const evName = e => hiOn() ? e.hi : e.name;
+const monthLabel = D => pcfg.sys === 'P' ? D.monthP : D.month;
+function shortTithi(info) {
+  const t = info.tithi;
+  if (t === 15) return '🌕';
+  if (t === 30) return '🌑';
+  const n = ((t - 1) % 15) + 1;
+  return (info.krishna ? (hiOn() ? 'कृ' : 'K') : (hiOn() ? 'शु' : 'S')) + n;
+}
+function panchangCell(k) {
+  if (!pcfgOn()) return '';
+  const info = safe(() => PC.dayInfo(k, pcfg.loc), null);
+  if (!info) return '';
+  const ev = safe(() => PC.eventsFor(k, pcfg.loc), []);
+  const mark = ev.some(e => e.big) ? '<b class="fd"></b>' : ev.length ? '<b class="fv"></b>' : '';
+  return `<small class="tl">${shortTithi(info)}</small>${mark}`;
+}
+function chipsHtml(ev, max) {
+  return ev.slice(0, max).map(e => `<span class="chipx${e.big ? ' big' : ''}">${evName(e)}</span>`).join('') +
+         (ev.length > max ? `<span class="chipx">+${ev.length - max}</span>` : '');
+}
+function renderStrip() {
+  const el = $('pstrip');
+  if (!pcfgOn()) { el.style.display = 'none'; return; }
+  const D = safe(() => PC.describe(selected, pcfg.loc, hiOn()), null);
+  if (!D) { el.style.display = 'none'; return; }
+  const ev = safe(() => PC.eventsFor(selected, pcfg.loc), []);
+  el.style.display = 'block';
+  el.innerHTML = `<span class="more">${hiOn() ? 'पंचांग' : 'Panchang'} ›</span>` +
+    `<div>${PC.PHASE[D.info.phase]} <b>${D.paksha.split(' ')[0]} ${D.tithi}</b> · ${D.nak} · ${monthLabel(D)}</div>` + chipsHtml(ev, 3);
+  el.onclick = () => openPanchang(selected);
+}
+
+/* ---- full panchang screen ---- */
+let pSel = todayKey(), pShown = new Date();
+pShown.setDate(1);
+const PWEEK = { en: ['S', 'M', 'T', 'W', 'T', 'F', 'S'], hi: ['र', 'सो', 'मं', 'बु', 'गु', 'शु', 'श'] };
+function openPanchang(date) {
+  pSel = date || selected; pShown = parse(pSel); pShown.setDate(1);
+  $('panchang').classList.add('open');
+  renderPanchang();
+}
+function renderPanchang() {
+  const y = pShown.getFullYear(), m = pShown.getMonth();
+  $('ptitle').textContent = hiOn() ? 'पंचांग' : 'Panchang';
+  $('pmonthTitle').textContent = pShown.toLocaleDateString(hiOn() ? 'hi-IN' : undefined, { month: 'long', year: 'numeric' });
+  $('ptoday').textContent = hiOn() ? 'आज' : 'Today';
+  $('pweek').innerHTML = PWEEK[hiOn() ? 'hi' : 'en'].map(x => `<div>${x}</div>`).join('');
+  const off = new Date(y, m, 1).getDay(), len = new Date(y, m + 1, 0).getDate(), tk = todayKey();
+  const grid = $('pgrid'); grid.innerHTML = '';
+  for (let i = 0; i < off; i++) grid.appendChild(document.createElement('div'));
+  const monthEvents = [];
+  for (let d = 1; d <= len; d++) {
+    const k = key(new Date(y, m, d));
+    const info = safe(() => PC.dayInfo(k, pcfg.loc), null);
+    const ev = safe(() => PC.eventsFor(k, pcfg.loc), []);
+    if (ev.length) monthEvents.push([k, ev]);
+    const c = document.createElement('div');
+    c.className = 'cell' + (k === pSel ? ' sel' : '') + (k === tk ? ' today' : '') + ((off + d - 1) % 7 === 0 ? ' sun' : '');
+    const mark = ev.some(e => e.big) ? '<b class="fd"></b>' : ev.length ? '<b class="fv"></b>' : '';
+    c.innerHTML = `<span>${d}</span>` + (info ? `<small class="tl">${shortTithi(info)}</small>` : '') + mark;
+    c.onclick = () => { pSel = k; renderPanchang(); };
+    grid.appendChild(c);
+  }
+  renderPanchangDetail(monthEvents, y, m);
+}
+function renderPanchangDetail(monthEvents, y, m) {
+  const hi = hiOn(), L = hi
+    ? { tithi: 'तिथि', nak: 'नक्षत्र', yoga: 'योग', kar: 'करण', sr: 'सूर्योदय', ss: 'सूर्यास्त', rahu: 'राहु काल', abh: 'अभिजित् मुहूर्त', mon: 'मास', sam: 'विक्रम संवत्', until: 'तक', then: 'फिर', ev: 'त्योहार व व्रत', month: 'इस महीने के त्योहार व व्रत', add: '+ कार्य', none: 'इस दिन कोई त्योहार नहीं', times: 'समय' }
+    : { tithi: 'Tithi', nak: 'Nakshatra', yoga: 'Yoga', kar: 'Karana', sr: 'Sunrise', ss: 'Sunset', rahu: 'Rahu Kaal', abh: 'Abhijit Muhurta', mon: 'Month', sam: 'Vikram Samvat', until: 'until', then: 'then', ev: 'Festivals & vrats', month: 'Festivals & vrats this month', add: '+ Task', none: 'No festival or vrat on this day', times: 'Times for' };
+  const D = safe(() => PC.describe(pSel, pcfg.loc, hi), null);
+  const box = $('pscroll');
+  if (!D) { box.innerHTML = '<div class="empty">Panchang is unavailable for this date.</div>'; return; }
+  const i = D.info, ev = safe(() => PC.eventsFor(pSel, pcfg.loc), []);
+  const row = (a, b) => `<div class="drow"><span>${a}</span><span>${b}</span></div>`;
+  const rng = r => `${D.t(r[0])} – ${D.t(r[1])}`;
+  let h = `<div class="pcard"><h3>${PC.PHASE[i.phase]} ${D.weekday}, ${parse(pSel).toLocaleDateString(hi ? 'hi-IN' : undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+    <div class="sub">${D.paksha} · ${D.tithi} · ${monthLabel(D)}</div>`;
+  h += row(L.tithi, `${D.tithi} ${L.until} ${D.t(i.tithiEnd)}<br><small style="color:var(--muted)">${L.then} ${D.nextTithi}</small>`);
+  h += row(L.nak, `${D.nak} ${L.until} ${D.t(i.nakEnd)}`);
+  h += row(L.yoga, `${D.yoga} ${L.until} ${D.t(i.yogaEnd)}`);
+  h += row(L.kar, `${D.karana} ${L.until} ${D.t(i.karanaEnd)}`);
+  h += row(L.mon, monthLabel(D) + (pcfg.sys === 'P' ? ' (Purnimanta)' : ' (Amanta)'));
+  h += row(L.sam, i.vs);
+  h += row(L.sr, D.t(i.sunrise)) + row(L.ss, D.t(i.sunset));
+  h += row(L.rahu, rng(i.rahu)) + row(L.abh, rng(i.abhijit));
+  h += `</div><div class="sec">${L.ev.toUpperCase()}</div>`;
+  h += ev.length ? ev.map((e, n) => `<div class="evrow${e.big ? ' big' : ''}"><div class="nm">${evName(e)}</div><button class="add" data-n="${n}">${L.add}</button></div>`).join('')
+                 : `<div class="hint">${L.none}</div>`;
+  h += `<div class="sec">${L.month.toUpperCase()}</div>`;
+  const tk = todayKey();
+  h += monthEvents.map(([k, evs], n) => evs.map((e, j) =>
+    `<div class="evrow${e.big ? ' big' : ''}${k === tk ? ' today' : ''}" data-k="${k}"><div class="d">${j ? '' : parse(k).toLocaleDateString(hi ? 'hi-IN' : undefined, { day: 'numeric', month: 'short', weekday: 'short' })}</div><div class="nm">${evName(e)}</div></div>`).join('')).join('');
+  h += `<div class="note">${L.times} ${pcfg.loc.name}. Computed from the positions of the Sun and Moon (Lahiri ayanamsa), so it works for any year; ` +
+       `accurate to a few minutes. Festival dates follow standard sunrise/pradosh rules and can differ by a day between traditions and regions, so confirm with your local panchang for religious use.` +
+       ((y < 1600 || y > 2400) ? ' Dates outside 1600-2400 are approximate.' : '') + `</div>`;
+  box.innerHTML = h;
+  box.querySelectorAll('.add').forEach(b => b.onclick = () => {
+    const e = ev[Number(b.dataset.n)];
+    openTask(null, { title: evName(e), date: pSel });
+  });
+  box.querySelectorAll('.evrow[data-k]').forEach(r => r.onclick = () => { pSel = r.dataset.k; renderPanchang(); $('pscroll').scrollTop = 0; });
+}
+function shiftPMonth(n) {
+  pShown = new Date(pShown.getFullYear(), pShown.getMonth() + n, 1);
+  const p = parse(pSel), maxD = new Date(pShown.getFullYear(), pShown.getMonth() + 1, 0).getDate();
+  pSel = key(new Date(pShown.getFullYear(), pShown.getMonth(), Math.min(p.getDate(), maxD)));
+  renderPanchang();
+}
+$('btnPanchang').onclick = () => openPanchang(selected);
+$('pback').onclick = () => { selected = pSel; shown = parse(selected); shown.setDate(1); $('panchang').classList.remove('open'); render(); };
+$('pprev').onclick = () => shiftPMonth(-1);
+$('pnext').onclick = () => shiftPMonth(1);
+$('ptoday').onclick = () => { pSel = todayKey(); pShown = parse(pSel); pShown.setDate(1); renderPanchang(); };
+$('pmonthTitle').onclick = () => {
+  const i = document.createElement('input');
+  i.type = 'date'; i.value = pSel; i.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+  document.body.appendChild(i);
+  i.onchange = () => { if (i.value) { pSel = i.value; pShown = parse(pSel); pShown.setDate(1); renderPanchang(); } i.remove(); };
+  i.onblur = () => setTimeout(() => i.remove(), 300);
+  try { i.showPicker(); } catch (e) { i.focus(); i.click(); }
+};
+let psx = null, psy = null;
+$('pgrid').addEventListener('touchstart', e => { psx = e.touches[0].clientX; psy = e.touches[0].clientY; }, { passive: true });
+$('pgrid').addEventListener('touchend', e => {
+  if (psx === null) return;
+  const dx = e.changedTouches[0].clientX - psx, dy = e.changedTouches[0].clientY - psy;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftPMonth(dx < 0 ? 1 : -1);
+  psx = null;
+}, { passive: true });
+
+/* ---- panchang settings ---- */
+function paintPcfg() {
+  const mark = (id, v) => document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset.v === String(v)));
+  mark('pLang', pcfg.lang); mark('pSys', pcfg.sys); mark('pShow', pcfg.tithiOnCal ? 1 : 0);
+  const sel = $('pCity'); sel.innerHTML = '';
+  const names = CITIES.map(c => c[0]);
+  const list = names.includes(pcfg.loc.name) ? CITIES : [[pcfg.loc.name, pcfg.loc.lat, pcfg.loc.lon, pcfg.loc.tz]].concat(CITIES);
+  list.forEach(c => { const o = document.createElement('option'); o.value = c[0]; o.textContent = c[0]; sel.appendChild(o); });
+  sel.value = pcfg.loc.name;
+}
+function applyPcfg() {
+  savePcfg(); paintPcfg();
+  render();
+  if ($('panchang').classList.contains('open')) renderPanchang();
+}
+[['pLang', v => pcfg.lang = v], ['pSys', v => pcfg.sys = v], ['pShow', v => pcfg.tithiOnCal = v === '1']].forEach(([id, set]) =>
+  document.querySelectorAll(`#${id} button`).forEach(b => b.onclick = () => { set(b.dataset.v); applyPcfg(); }));
+$('pCity').onchange = () => {
+  const c = CITIES.find(x => x[0] === $('pCity').value);
+  if (c) { pcfg.loc = { name: c[0], lat: c[1], lon: c[2], tz: c[3] || 5.5 }; applyPcfg(); }
+};
+$('pGeo').onclick = () => {
+  if (!navigator.geolocation) { toast('Location not available on this device'); return; }
+  navigator.geolocation.getCurrentPosition(p => {
+    pcfg.loc = { name: 'My location', lat: +p.coords.latitude.toFixed(4), lon: +p.coords.longitude.toFixed(4), tz: -new Date().getTimezoneOffset() / 60 };
+    applyPcfg(); toast('Using your location');
+  }, () => toast('Could not get your location'), { timeout: 10000 });
+};
+$('pcfgBtn').onclick = () => { paintPcfg(); $('pcfgDlg').showModal(); };
+$('pcfgClose').onclick = () => $('pcfgDlg').close();
 
 /* ---------- theme ---------- */
 function applyTheme(t) {

@@ -33,3 +33,12 @@ deploys automatically via `.github/workflows/pages.yml`. No build step; the site
 ## Files
 - `index.html` the whole app (UI, IndexedDB storage, logic)
 - `sw.js` offline cache, `manifest.webmanifest` install metadata, `icons/` app icons
+
+## Hindu Panchang (offline, any year)
+
+Tap **Panchang** in the header, or the strip under the calendar, to see tithi, paksha, nakshatra, yoga, karana, Hindu month, Vikram Samvat, sunrise/sunset, Rahu Kaal and Abhijit Muhurta for any date, with festivals and vrats listed for the month. Tithi labels (S = Shukla, K = Krishna) also appear on the main calendar.
+
+- Computed on the device from Sun and Moon positions (Lahiri ayanamsa), so no internet or scraping is needed and any year works.
+- Settings (gear icon): English/Hindi, Purnimanta/Amanta months, city or current location, tithi on/off.
+- Tap **+ Task** next to a festival to add it as a task.
+- Accuracy: tithi times are within a few minutes. Festival dates can differ by a day between traditions; confirm locally for religious use.
